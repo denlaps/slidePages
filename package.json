@@ -1,0 +1,41 @@
+{
+  "name": "frimis",
+  "version": "1.0.0",
+  "description": "Frimis - online market",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Denis Laptev",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^9.4.10",
+    "cssnano": "^4.1.10",
+    "g": "^2.0.1",
+    "gulp": "^4.0.2",
+    "gulp-dest": "^0.2.3",
+    "gulp-imagemin": "^5.0.3",
+    "gulp-postcss": "^8.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "pngquant": "^2.0.1",
+    "reset-css": "^4.0.1"
+  },
+  "dependencies": {
+    "browser-sync": "^2.26.3",
+    "imagemin": "^6.1.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "ie >= 8",
+    "edge >= 15",
+    "ie_mob >= 10",
+    "ff >= 45",
+    "chrome >= 45",
+    "safari >= 7",
+    "opera >= 23",
+    "ios >= 7",
+    "android >= 4",
+    "bb >= 10"
+  ]
+}

@@ -1,0 +1,10 @@
+@mixin arrow($color) {
+  content: '';
+  width: 13.5px;
+  height: 13.5px;
+  border-top: 2.2px solid currentColor;
+  border-left: 2.2px solid currentColor;
+  transform: rotate(-135deg);
+  position: absolute;
+  bottom: -20px;
+}

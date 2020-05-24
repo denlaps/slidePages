@@ -32,9 +32,15 @@ header {
   &.attached {
     background: #fff;
     color: #cfcfcf;
-    transition: transform 500ms;
+    transition: transform 200ms;
     transform: translateY(0) !important;
     position: fixed;
+
+    .container .mainMenu li a {
+      &:hover, &.active {
+        background-color: #dbdbdb;
+      }
+    }
   }
 
   .container {
@@ -59,9 +65,18 @@ header {
           text-transform: uppercase;
           transition: background-color 150ms, color 150ms;
 
-          &:hover {
+          &:hover, &.active {
             background-color: #fff;
             color: #666;
+          }
+        }
+      }
+
+      &:hover {
+        li {
+          a:not(:hover) { 
+            background: none !important;
+            color: currentColor !important;
           }
         }
       }
@@ -133,7 +148,7 @@ header {
   }
 
   &.forest {
-    background: url('./img/home_bg.jpg') center / cover fixed no-repeat;
+    background: url('./img/home_bg.webp') center / cover fixed no-repeat;
   }
 
   &.about {

@@ -15,6 +15,25 @@ function updateSectionMap() {
   window.sectionMap = { $prev, $current, $next };
 }
 
+function attachHeader() {
+  const screenMap = document.querySelectorAll('.fullScreen');
+  const attachAction = window.prevSection.classList.contains('forest');
+  const detachAction = window.prevSection === screenMap[1] && sectionMap.$current === screenMap[0];
+
+  const $header = document.querySelector('header');
+  
+  if(attachAction) {
+    $header.style.transform = 'translateY(-100%)';
+    setTimeout(() => {
+      $header.classList.add('attached');
+    }, 0);
+  } else if(detachAction) {
+    $header.style.transform = 'translateY(0)';
+    $header.classList.remove('attached');
+  }
+  window.prevSection = sectionMap.$current;
+}
+
 function makeScroll($section, step = 20, dir, count) {
   if(!$section) {
     window.wheelBlocked = false;
@@ -31,6 +50,8 @@ function makeScroll($section, step = 20, dir, count) {
   if (winTop + step >= newTop && dir === 1 || winTop - step <= newTop && dir === -1) {
     window.scrollTo(0, newTop);
     window.wheelBlocked = false;
+    updateSectionMap();
+    attachHeader();
     return false;
   };
 
@@ -41,34 +62,63 @@ function makeScroll($section, step = 20, dir, count) {
   });
 }
 
-function addShadow($section, shade) {
-  if(!$section) return false;
+function addShadow($section, transY) {
+  if(!$section || !sectionMap.$next) return false;
 
-  $section.style.zIndex = '2';
-  sectionMap.$current.style.filter = `blur(${Math.floor(shade / 100)}px)`;
-  $section.style.boxShadow = `0 0 ${shade * 0.75}px ${shade / 2}px rgba(255, 255, 255)`;
+  transY = window.innerHeight - transY * 2;
+  transY = transY < 0 ? 0 : transY;
+  const $overlay = $section.querySelector('.fullScreen__overlay');
+  $overlay.style.transform = `translateY(${transY}px)`;
 }
 
 function onWheel(ev) {
-  window.winTop = document.documentElement.scrollTop;
-
-  if (window.wheelBlocked) return false;
-  window.scrollDir = ev.deltaY;
-  window.wheelBlocked = true;
-
   updateSectionMap();
+  window.scrollDir = ev.deltaY;
+  window.winTop = document.documentElement.scrollTop;
+  const winBottom = winTop + window.innerHeight;
+  const top = sectionMap.$current.offsetTop;
+  const bottom = sectionMap.$current.offsetTop + sectionMap.$current.offsetHeight;
+  const stepScroll = scrollDir < 0 ? -100 : 100;
+  const inSection = winTop + stepScroll >= top && winBottom + stepScroll <= bottom;
+
+  if (window.wheelBlocked || inSection) return false;
+  window.wheelBlocked = true;
   makeScroll(window.scrollDir > 0 ? sectionMap.$next : sectionMap.$prev);
 }
 
-document.addEventListener('wheel', onWheel);
-document.addEventListener('scroll', () => {
+function onScroll() {
   window.winTop = document.documentElement.scrollTop;
-  updateSectionMap();
-  if (sectionMap.$current) {
-    sectionMap.$current.style.zIndex = '2';
+  const top = sectionMap.$current.offsetTop;
+  const bottom = top + sectionMap.$current.offsetHeight;
+  if (winTop < top || winTop > bottom) {
+    updateSectionMap();
   }
+
   addShadow(
-    sectionMap.$next,
+    sectionMap.$current,
     winTop - sectionMap.$current.offsetTop
   );
+}
+
+function scrollNext(ev) {
+  ev.preventDefault();
+  updateSectionMap();
+  makeScroll(sectionMap.$next);
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.winTop = document.documentElement.scrollTop;
+  updateSectionMap();
+  window.prevSection = sectionMap.$current;
+
+  document.querySelectorAll('.fullScreen__overlay').forEach($overlay => {
+    $overlay.style.transform = `translateY(${window.innerHeight * 2}px)`;
+  });
+
+  document.addEventListener('wheel', onWheel);
+  document.addEventListener('scroll', onScroll);
+  document.querySelectorAll('.scroll-prompt button').forEach($button => {
+    $button.addEventListener('click', scrollNext);
+  });
 });

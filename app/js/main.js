@@ -1,7 +1,7 @@
 function refreshScreen() {
   window.winTop = document.documentElement.scrollTop;
   window.screenMap.forEach(($el, index, arr) => {
-    const top = $el.offsetTop;
+    const top = $el.offsetTop + (window.isMobile ? -1 : 0);
     const bottom = $el.offsetTop + $el.offsetHeight;
     if (winTop >= top && winTop <= bottom) {
       window.screenState = {
@@ -23,23 +23,35 @@ function updateMenu() {
   });
 }
 
-function replaceHeader() {
+function replaceHeader(firstLoad) {
   refreshScreen();
   updateMenu();
-  const attachAction = prevScreen === 0 && screenState.current === 1;
+
+  const attachAction = prevScreen === 0 && screenState.current === 1 || (firstLoad && screenState.current !== 0);
   const detachAction = prevScreen === 1 && screenState.current === 0;
 
-  const $header = document.querySelector('header');
-  
-  if(attachAction) {
-    $header.style.transform = 'translateY(-100%)';
-    setTimeout(() => {
-      $header.classList.add('attached');
-    }, 0);
-  } else if(detachAction) {
-    $header.style.transform = 'translateY(0)';
-    $header.classList.remove('attached');
+  if (window.isMobile) {
+    const $menu = document.querySelector('.toggleMenu');
+
+    if(attachAction) {
+      $menu.classList.add('toggleMenu_invert');
+    } else if(detachAction) {
+      $menu.classList.remove('toggleMenu_invert');
+    }
+  } else {
+    const $header = document.querySelector('header');
+
+    if (attachAction) {
+      $header.style.transform = 'translateY(-100%)';
+      setTimeout(() => {
+        $header.classList.add('attached');
+      }, 0);
+    } else if (detachAction) {
+      $header.style.transform = 'translateY(0)';
+      $header.classList.remove('attached');
+    }
   }
+
   window.prevScreen = screenState.current;
 }
 
@@ -72,7 +84,7 @@ function makeScroll($section, dir, step = 20, count) {
 }
 
 function addShadow($section, transY) {
-  if(!$section || !screenMap[screenState.next]) return false;
+  if(!$section || !screenMap[screenState.next] || window.isMobile) return false;
 
   transY = window.innerHeight - transY * 2;
   transY = transY < 0 ? 0 : transY;
@@ -81,9 +93,15 @@ function addShadow($section, transY) {
 }
 
 function onWheel(ev) {
+  window.prevTop = window.winTop;
+  window.winTop = document.documentElement.scrollTop;
+  const wheelDiff = winTop - prevTop;
+  
+  if (window.isMobile || wheelDiff !== 0) return false;
+
   refreshScreen();
   window.scrollDir = ev.deltaY;
-  window.winTop = document.documentElement.scrollTop;
+
   const winBottom = winTop + window.innerHeight;
   const top = screenMap[screenState.current].offsetTop;
   const bottom = screenMap[screenState.current].offsetTop + screenMap[screenState.current].offsetHeight;
@@ -99,9 +117,11 @@ function onWheel(ev) {
 }
 
 function onScroll() {
+  window.isMobile = window.innerWidth <= 600;
   window.winTop = document.documentElement.scrollTop;
   const top = screenMap[screenState.current].offsetTop;
   const bottom = top + screenMap[screenState.current].offsetHeight;
+
   if (winTop - 1 < top || winTop + 1 > bottom) {
     replaceHeader();
   }
@@ -117,8 +137,18 @@ function scrollOnClick(ev) {
   const screenId = ev.target.dataset.id || screenState.next;
   window.scrollDir = screenId > screenState.current ? 100 : -100;
   makeScroll(screenMap[screenId], window.scrollDir, 40);
+
+  if(ev.target.dataset.id) {
+    toggleMenu();
+  }
 }
 
+function toggleMenu() {
+  const $button = document.querySelector('.toggleMenu');
+  const $menu = document.querySelector('.mainMenu');
+  $button.classList.toggle('toggleMenu_opened');
+  $menu.classList.toggle('mainMenu_show');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   window.winTop = document.documentElement.scrollTop;
@@ -126,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshScreen();
   window.prevScreen = screenState.current;
+  replaceHeader(true);
 
   document.querySelectorAll('.fullScreen__overlay').forEach($overlay => {
     $overlay.style.transform = `translateY(${window.innerHeight * 2}px)`;
@@ -133,7 +164,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('wheel', onWheel);
   document.addEventListener('scroll', onScroll);
-  document.querySelectorAll('.scroll-prompt button, .mainMenu a').forEach($button => {
+  document.querySelectorAll('.scroll-prompt button').forEach($button => {
     $button.addEventListener('click', scrollOnClick);
   });
+  document.querySelectorAll('.mainMenu a').forEach($button => {
+    $button.addEventListener('click', scrollOnClick);
+  });
+  
+  document.querySelector('.toggleMenu').addEventListener('click', toggleMenu);
 });

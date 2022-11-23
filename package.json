@@ -22,7 +22,7 @@
     "reset-css": "^4.0.1"
   },
   "dependencies": {
-    "browser-sync": "^2.26.3",
+    "browser-sync": "^2.27.10",
     "imagemin": "^6.1.0"
   },
   "browserslist": [
